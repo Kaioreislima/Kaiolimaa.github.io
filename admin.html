@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel de Administração - Rifa</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+    h1 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
+    th { background-color: #333; color: white; }
+    .summary { margin-top: 20px; font-size: 18px; }
+    .container { max-width: 1000px; margin: auto; }
+    input[type=password] { padding: 8px; width: 200px; }
+    #authArea { text-align: center; margin-top: 50px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Painel de Administração</h1>
+
+    <div id="authArea">
+      <p>Digite a senha de administrador:</p>
+      <input type="password" id="adminPassword" placeholder="Senha" />
+      <button onclick="authenticate()">Entrar</button>
+      <p id="authMessage"></p>
+    </div>
+
+    <div id="dashboard" style="display:none;">
+      <div class="summary">
+        <p><strong>Total de reservas:</strong> <span id="totalReservas">0</span></p>
+        <p><strong>Total arrecadado:</strong> R$ <span id="totalValor">0,00</span></p>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Telefone</th>
+            <th>Números Reservados</th>
+            <th>Qtd.</th>
+          </tr>
+        </thead>
+        <tbody id="reservaTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const senhaCorreta = "admin123"; // Altere essa senha se desejar
+    const sheetURL = "https://opensheet.elk.sh/SEU_ID/SEU_NOME_DE_ABA"; // Substitua com seu ID e aba
+
+    function authenticate() {
+      const senha = document.getElementById("adminPassword").value;
+      if (senha === senhaCorreta) {
+        document.getElementById("authArea").style.display = "none";
+        document.getElementById("dashboard").style.display = "block";
+        carregarDados();
+      } else {
+        document.getElementById("authMessage").textContent = "Senha incorreta.";
+      }
+    }
+
+    async function carregarDados() {
+      try {
+        const res = await fetch(sheetURL);
+        const data = await res.json();
+        const tbody = document.getElementById("reservaTable");
+        tbody.innerHTML = "";
+
+        let total = 0;
+        let valorTotal = 0;
+
+        data.forEach(entry => {
+          const qtd = entry.Números.split(',').length;
+          valorTotal += qtd * 5;
+          total += 1;
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${entry.Nome}</td>
+            <td>${entry.Telefone}</td>
+            <td>${entry.Números}</td>
+            <td>${qtd}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById("totalReservas").textContent = total;
+        document.getElementById("totalValor").textContent = valorTotal.toFixed(2);
+
+      } catch (err) {
+        alert("Erro ao carregar os dados da planilha.");
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>
