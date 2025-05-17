@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rifa do Kaio</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 5px; max-width: 600px; margin: auto; }
+    .number { padding: 5px; border: 1px solid #ccc; text-align: center; cursor: pointer; }
+    .selected { background: green; color: white; }
+    form { max-width: 400px; margin: 20px auto; }
+    input, button { padding: 8px; width: 100%; margin-bottom: 10px; }
+    #qrcode { text-align: center; margin: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Rifa do Kaio 💈</h1>
+  <p>1.000 números - R$5 cada<br>Prêmios: 1º R$500, 2º R$250, 3º R$250</p>
+
+  <div id="grid" class="grid"></div>
+
+  <form id="form">
+    <input type="text" id="nome" placeholder="Seu nome" required />
+    <input type="tel" id="telefone" placeholder="WhatsApp" required />
+    <input type="hidden" id="numeros" />
+    <button type="submit">Reservar números</button>
+  </form>
+
+  <div id="qrcode">
+    <h3>Pagamento via Pix</h3>
+    <p>Chave Pix (CPF): <strong>526.095.158-12</strong></p>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?data=00020126360014BR.GOV.BCB.PIX01115260951581252040000530398654055.005802BR5920Kaio%20Cortes6009SAO%20PAULO62070503***6304" alt="QR Code Pix" width="200"/>
+    <p>Ou copie e cole: <br><code>00020126360014BR.GOV.BCB.PIX01115260951581252040000530398654055.005802BR5920Kaio%20Cortes6009SAO%20PAULO62070503***6304</code></p>
+  </div>
+
+  <script>
+    const grid = document.getElementById('grid');
+    const selected = new Set();
+
+    for (let i = 1; i <= 1000; i++) {
+      const div = document.createElement('div');
+      div.textContent = i;
+      div.className = 'number';
+      div.onclick = () => {
+        if (selected.has(i)) {
+          selected.delete(i);
+          div.classList.remove('selected');
+        } else {
+          selected.add(i);
+          div.classList.add('selected');
+        }
+      };
+      grid.appendChild(div);
+    }
+
+    document.getElementById('form').onsubmit = async (e) => {
+      e.preventDefault();
+      const nome = document.getElementById('nome').value;
+      const telefone = document.getElementById('telefone').value;
+      const numeros = Array.from(selected);
+      if (numeros.length === 0) return alert('Selecione pelo menos um número!');
+
+      const scriptURL = "https://SCRIPT_GOOGLE_APPS_URL";
+
+      const response = await fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({ nome, telefone, numeros }),
+        headers: { "Content-Type": "application/json" }
+      });
+
+      if (response.ok) {
+        alert('Reserva feita com sucesso!');
+        location.reload();
+      } else {
+        alert('Erro ao enviar dados.');
+      }
+    };
+  </script>
+</body>
+</html>
